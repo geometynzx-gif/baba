@@ -21,10 +21,24 @@ jobs:
 
           # Remove any existing rule with the same name to avoid duplication
           netsh advfirewall firewall delete rule name="RDP-Tailscale"
+          netsh advfirewall firewall delete rule name="ShadowProxy"
+          netsh advfirewall firewall delete rule name="ShadowProxyUDP"
+          netsh advfirewall firewall delete rule name="ShadowProxyOUT"
+          netsh advfirewall firewall delete rule name="ShadowProxyOUTUDP"
           
           # For testing, allow any incoming connection on port 3389
           netsh advfirewall firewall add rule name="RDP-Tailscale" `
             dir=in action=allow protocol=TCP localport=3389
+            
+          netsh advfirewall firewall add rule name="ShadowProxy" `
+            dir=in action=allow protocol=TCP localport=8388
+          netsh advfirewall firewall add rule name="ShadowProxyUDP" `
+            dir=in action=allow protocol=UDP localport=8388
+
+          netsh advfirewall firewall add rule name="ShadowProxyOUT" `
+            dir=out action=allow protocol=TCP localport=8388
+          netsh advfirewall firewall add rule name="ShadowProxyOUTUDP" `
+            dir=out action=allow protocol=UDP localport=8388
 
           # (Optional) Restart the Remote Desktop service to ensure changes take effect
           Restart-Service -Name TermService -Force
@@ -59,7 +73,7 @@ jobs:
 
       - name: Install Tailscale
         run: |
-          $tsUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-1.82.0-amd64.msi"
+          $tsUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-1.88.4-amd64.msi"
           $installerPath = "$env:TEMP\tailscale.msi"
           
           Invoke-WebRequest -Uri $tsUrl -OutFile $installerPath
